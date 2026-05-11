@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRIS — Customer Risk Intelligence System</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0a0c10;
+    --surface:   #111318;
+    --card:      #16191f;
+    --border:    #252830;
+    --accent:    #00e5ff;
+    --accent2:   #7c5cfc;
+    --danger:    #ff4757;
+    --warn:      #ffa502;
+    --safe:      #2ed573;
+    --text:      #e8eaf0;
+    --muted:     #6b7280;
+    --mono:      'Space Mono', monospace;
+    --sans:      'DM Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── GRID BACKGROUND ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: relative;
+    z-index: 10;
+    padding: 28px 40px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(8px);
+  }
+
+  .logo-mark {
+    width: 38px; height: 38px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--bg);
+    flex-shrink: 0;
+  }
+
+  .logo-text {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .logo-sub {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+
+  .header-badge {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--safe);
+    letter-spacing: 1px;
+  }
+
+  .pulse {
+    width: 7px; height: 7px;
+    background: var(--safe);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(46,213,115,0.4); }
+    50% { opacity: 0.8; transform: scale(1.2); box-shadow: 0 0 0 4px rgba(46,213,115,0); }
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .layout {
+    position: relative;
+    z-index: 5;
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 0;
+    min-height: calc(100vh - 81px);
+  }
+
+  /* ── FORM PANEL ── */
+  .form-panel {
+    padding: 40px;
+    overflow-y: auto;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--border), transparent);
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-group.full { grid-column: 1 / -1; }
+
+  label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .input-wrap {
+    position: relative;
+  }
+
+  .input-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: var(--muted);
+    pointer-events: none;
+  }
+
+  input[type="number"],
+  input[type="text"],
+  select {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px 10px 36px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  input[type="number"]:focus,
+  input[type="text"]:focus,
+  select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,229,255,0.1);
+  }
+
+  /* Payment history row */
+  .month-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+  }
+
+  .month-btn {
+    padding: 8px 4px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--muted);
+    font-size: 11px;
+    font-family: var(--mono);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    user-select: none;
+  }
+
+  .month-btn span { display: block; font-size: 9px; margin-bottom: 4px; color: var(--muted); }
+
+  .month-btn[data-val="0"] { border-color: var(--safe); color: var(--safe); background: rgba(46,213,115,0.08); }
+  .month-btn[data-val="1"] { border-color: var(--warn); color: var(--warn); background: rgba(255,165,2,0.08); }
+  .month-btn[data-val="2"] { border-color: var(--danger); color: var(--danger); background: rgba(255,71,87,0.08); }
+
+  /* Sliders */
+  .slider-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  input[type="range"] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(0,229,255,0.4);
+  }
+
+  .slider-val {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent);
+    min-width: 50px;
+    text-align: right;
+  }
+
+  /* Submit */
+  .submit-row {
+    margin-top: 28px;
+    display: flex;
+    gap: 12px;
+  }
+
+  .btn-primary {
+    flex: 1;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: var(--bg);
+    border: none;
+    border-radius: 10px;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: opacity 0.2s, transform 0.15s;
+  }
+
+  .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .btn-secondary {
+    padding: 14px 20px;
+    background: var(--card);
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-family: var(--mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .btn-secondary:hover { color: var(--text); border-color: var(--muted); }
+
+  /* ── RESULT PANEL ── */
+  .result-panel {
+    border-left: 1px solid var(--border);
+    background: var(--surface);
+    padding: 40px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    position: sticky;
+    top: 0;
+    height: calc(100vh - 81px);
+    overflow-y: auto;
+  }
+
+  .result-idle {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .idle-icon { font-size: 48px; opacity: 0.3; }
+
+  .idle-text {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    line-height: 1.8;
+  }
+
+  /* Risk Meter */
+  .risk-meter-wrap { display: none; flex-direction: column; gap: 24px; }
+
+  .risk-score-display {
+    text-align: center;
+    padding: 28px 20px;
+    background: var(--card);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .risk-score-display::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--glow-color, rgba(0,229,255,0.05));
+    pointer-events: none;
+  }
+
+  .risk-num {
+    font-family: var(--mono);
+    font-size: 56px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--risk-color, var(--accent));
+    text-shadow: 0 0 30px var(--risk-color, var(--accent));
+  }
+
+  .risk-pct { font-size: 24px; }
+
+  .risk-label-big {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--risk-color, var(--accent));
+    margin-top: 8px;
+  }
+
+  .risk-verdict {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* Gauge bar */
+  .gauge {
+    background: var(--border);
+    border-radius: 4px;
+    height: 6px;
+    overflow: hidden;
+  }
+
+  .gauge-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(to right, var(--safe), var(--warn), var(--danger));
+    transition: width 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .gauge-labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+
+  /* Stats */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .stat-value {
+    font-family: var(--mono);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  /* Factors */
+  .factors { display: flex; flex-direction: column; gap: 8px; }
+
+  .factor-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+  }
+
+  .factor-icon { font-size: 14px; width: 20px; text-align: center; }
+  .factor-name { flex: 1; color: var(--muted); }
+  .factor-badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  .badge-ok { background: rgba(46,213,115,0.15); color: var(--safe); }
+  .badge-warn { background: rgba(255,165,2,0.15); color: var(--warn); }
+  .badge-bad { background: rgba(255,71,87,0.15); color: var(--danger); }
+
+  /* Recommendation */
+  .recommendation {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+
+  .recommendation strong { color: var(--text); }
+
+  /* Loading overlay */
+  .loading-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10,12,16,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-text {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  /* Error banner */
+  .error-banner {
+    display: none;
+    background: rgba(255,71,87,0.1);
+    border: 1px solid rgba(255,71,87,0.3);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--danger);
+    font-family: var(--mono);
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 20px;
+    font-size: 13px;
+    color: var(--text);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+    z-index: 200;
+    max-width: 340px;
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .result-panel {
+      position: static;
+      height: auto;
+      border-left: none;
+      border-top: 1px solid var(--border);
+    }
+    .form-panel { padding: 24px 20px; }
+    .result-panel { padding: 24px 20px; }
+  }
+
+  @media (max-width: 600px) {
+    header { padding: 18px 20px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .month-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-in { animation: fadeUp 0.45s ease forwards; }
+</style>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text">Analysing Risk Profile</div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo-mark">CR</div>
+  <div>
+    <div class="logo-text">CRIS</div>
+    <div class="logo-sub">Customer Risk Intelligence System</div>
+  </div>
+  <div class="header-badge">
+    <div class="pulse"></div>
+    <span>LIVE BACKEND</span>
+  </div>
+</header>
+
+<!-- MAIN LAYOUT -->
+<div class="layout">
+
+  <!-- ── FORM PANEL ── -->
+  <div class="form-panel">
+
+    <div class="section-label">Customer Profile</div>
+
+    <div class="form-grid">
+      <!-- Age -->
+      <div class="form-group">
+        <label>Age</label>
+        <div class="input-wrap">
+          <span class="input-icon">👤</span>
+          <input type="number" id="f_age" min="18" max="90" value="35" required>
+        </div>
+      </div>
+
+      <!-- Income -->
+      <div class="form-group">
+        <label>Annual Income ($)</label>
+        <div class="input-wrap">
+          <span class="input-icon">💵</span>
+          <input type="number" id="f_income" min="0" value="60000" required>
+        </div>
+      </div>
+
+      <!-- Credit Score with slider -->
+      <div class="form-group">
+        <label>Credit Score <span id="lbl_credit" style="color:var(--accent);font-family:var(--mono)">600</span></label>
+        <div class="slider-wrap">
+          <div class="slider-row">
+            <input type="range" id="f_credit" min="300" max="850" value="600" oninput="document.getElementById('lbl_credit').textContent=this.value">
+          </div>
+          <div class="gauge-labels"><span>Poor 300</span><span>Fair</span><span>Good</span><span>850 Excellent</span></div>
+        </div>
+      </div>
+
+      <!-- Credit Utilization -->
+      <div class="form-group">
+        <label>Credit Utilization <span id="lbl_util" style="color:var(--accent);font-family:var(--mono)">50%</span></label>
+        <div class="slider-wrap">
+          <div class="slider-row">
+            <input type="range" id="f_util" min="0" max="100" value="50"
+              oninput="document.getElementById('lbl_util').textContent=this.value+'%'">
+          </div>
+          <div class="gauge-labels"><span>0%</span><span>30% Ideal</span><span>70%</span><span>100%</span></div>
+        </div>
+      </div>
+
+      <!-- Missed Payments -->
+      <div class="form-group">
+        <label>Missed Payments (total)</label>
+        <div class="input-wrap">
+          <span class="input-icon">⚠️</span>
+          <input type="number" id="f_missed" min="0" max="20" value="1" required>
+        </div>
+      </div>
+
+      <!-- Loan Balance -->
+      <div class="form-group">
+        <label>Loan Balance ($)</label>
+        <div class="input-wrap">
+          <span class="input-icon">🏦</span>
+          <input type="number" id="f_loan" min="0" value="15000" required>
+        </div>
+      </div>
+
+      <!-- DTI -->
+      <div class="form-group">
+        <label>Debt-to-Income Ratio <span id="lbl_dti" style="color:var(--accent);font-family:var(--mono)">0.30</span></label>
+        <div class="slider-wrap">
+          <div class="slider-row">
+            <input type="range" id="f_dti" min="0" max="100" value="30"
+              oninput="document.getElementById('lbl_dti').textContent=(this.value/100).toFixed(2)">
+          </div>
+          <div class="gauge-labels"><span>0.00</span><span>0.36 Max</span><span>0.70</span><span>1.00</span></div>
+        </div>
+      </div>
+
+      <!-- Account Tenure -->
+      <div class="form-group">
+        <label>Account Tenure (years)</label>
+        <div class="input-wrap">
+          <span class="input-icon">📅</span>
+          <input type="number" id="f_tenure" min="0" max="50" value="5" required>
+        </div>
+      </div>
+
+      <!-- Employment Status -->
+      <div class="form-group">
+        <label>Employment Status</label>
+        <div class="input-wrap">
+          <span class="input-icon">💼</span>
+          <select id="f_emp">
+            <option value="employed">Employed</option>
+            <option value="self_employed">Self-Employed</option>
+            <option value="unemployed">Unemployed</option>
+            <option value="retired">Retired</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Credit Card Type -->
+      <div class="form-group">
+        <label>Credit Card Type</label>
+        <div class="input-wrap">
+          <span class="input-icon">💳</span>
+          <select id="f_card">
+            <option value="Standard">Standard</option>
+            <option value="Gold">Gold</option>
+            <option value="Platinum">Platinum</option>
+            <option value="Business">Business</option>
+            <option value="Student">Student</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Location -->
+      <div class="form-group full">
+        <label>Location</label>
+        <div class="input-wrap">
+          <span class="input-icon">📍</span>
+          <select id="f_loc">
+            <option value="Chicago">Chicago</option>
+            <option value="New York">New York</option>
+            <option value="Los Angeles">Los Angeles</option>
+            <option value="Houston">Houston</option>
+            <option value="Phoenix">Phoenix</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment History -->
+    <div style="margin-top:28px">
+      <div class="section-label">6-Month Payment History</div>
+      <div class="month-grid" id="monthGrid">
+        <!-- Populated by JS -->
+      </div>
+      <div style="display:flex;gap:16px;margin-top:10px;font-size:11px;color:var(--muted)">
+        <span>🟢 On-time</span><span>🟡 Late</span><span>🔴 Missed</span>
+        <span style="margin-left:auto;font-style:italic">Click to cycle status</span>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div class="error-banner" id="errorBanner"></div>
+
+    <!-- Submit -->
+    <div class="submit-row">
+      <button class="btn-primary" id="btnAnalyse" onclick="submitPredict()">
+        ⚡ ANALYSE RISK
+      </button>
+      <button class="btn-secondary" onclick="resetForm()">↺ Reset</button>
+    </div>
+
+  </div>
+
+  <!-- ── RESULT PANEL ── -->
+  <div class="result-panel">
+
+    <!-- Idle state -->
+    <div class="result-idle" id="resultIdle">
+      <div class="idle-icon">🔍</div>
+      <div class="idle-text">
+        Complete the customer<br>profile and click<br>Analyse Risk to begin
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="risk-meter-wrap" id="riskMeter">
+
+      <div class="section-label" style="margin-bottom:0">Risk Assessment</div>
+
+      <!-- Score display -->
+      <div class="risk-score-display" id="riskDisplay">
+        <div class="risk-num" id="riskNum">--<span class="risk-pct">%</span></div>
+        <div class="risk-label-big" id="riskLabelBig">--</div>
+        <div class="risk-verdict" id="riskVerdict">--</div>
+      </div>
+
+      <!-- Gauge -->
+      <div>
+        <div class="gauge">
+          <div class="gauge-fill" id="gaugeFill" style="width:0%"></div>
+        </div>
+        <div class="gauge-labels">
+          <span>LOW RISK</span>
+          <span>MEDIUM</span>
+          <span>HIGH RISK</span>
+        </div>
+      </div>
+
+      <!-- Stats grid -->
+      <div class="stat-grid" id="statGrid"></div>
+
+      <!-- Risk Factors -->
+      <div>
+        <div class="section-label" style="margin-bottom:12px">Key Risk Factors</div>
+        <div class="factors" id="factorsWrap"></div>
+      </div>
+
+      <!-- Recommendation -->
+      <div>
+        <div class="section-label" style="margin-bottom:12px">Recommendation</div>
+        <div class="recommendation" id="recommendationBox"></div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── MONTH BUTTONS ──────────────────────────────
+const monthNames = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6'];
+const monthLabels = ['Jan','Feb','Mar','Apr','May','Jun'];
+const monthVals   = [0, 0, 0, 0, 0, 0];
+const statusLabels = ['On-time', 'Late', 'Missed'];
+
+function buildMonthGrid() {
+  const grid = document.getElementById('monthGrid');
+  grid.innerHTML = '';
+  monthNames.forEach((m, i) => {
+    const btn = document.createElement('div');
+    btn.className = 'month-btn';
+    btn.dataset.val = monthVals[i];
+    btn.innerHTML = `<span>${monthLabels[i]}</span>${statusLabels[monthVals[i]]}`;
+    btn.onclick = () => {
+      monthVals[i] = (monthVals[i] + 1) % 3;
+      btn.dataset.val = monthVals[i];
+      btn.innerHTML = `<span>${monthLabels[i]}</span>${statusLabels[monthVals[i]]}`;
+    };
+    grid.appendChild(btn);
+  });
+}
+buildMonthGrid();
+
+// ── FORM RESET ─────────────────────────────────
+function resetForm() {
+  document.getElementById('f_age').value = 35;
+  document.getElementById('f_income').value = 60000;
+  document.getElementById('f_credit').value = 600;
+  document.getElementById('lbl_credit').textContent = 600;
+  document.getElementById('f_util').value = 50;
+  document.getElementById('lbl_util').textContent = '50%';
+  document.getElementById('f_missed').value = 1;
+  document.getElementById('f_loan').value = 15000;
+  document.getElementById('f_dti').value = 30;
+  document.getElementById('lbl_dti').textContent = '0.30';
+  document.getElementById('f_tenure').value = 5;
+  for (let i = 0; i < 6; i++) monthVals[i] = 0;
+  buildMonthGrid();
+  hideError();
+  hideResults();
+  showToast('Form reset ✓');
+}
+
+function hideError() {
+  document.getElementById('errorBanner').style.display = 'none';
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorBanner');
+  el.textContent = '⚠ ' + msg;
+  el.style.display = 'block';
+}
+
+function hideResults() {
+  document.getElementById('resultIdle').style.display = 'flex';
+  document.getElementById('riskMeter').style.display = 'none';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── SUBMIT / PREDICT ──────────────────────────
+async function submitPredict() {
+  hideError();
+
+  const age    = parseInt(document.getElementById('f_age').value);
+  const income = parseFloat(document.getElementById('f_income').value);
+  const cs     = parseInt(document.getElementById('f_credit').value);
+  const util   = parseFloat(document.getElementById('f_util').value) / 100;
+  const missed = parseInt(document.getElementById('f_missed').value);
+  const loan   = parseFloat(document.getElementById('f_loan').value);
+  const dti    = parseFloat(document.getElementById('f_dti').value) / 100;
+  const tenure = parseInt(document.getElementById('f_tenure').value);
+  const emp    = document.getElementById('f_emp').value;
+  const card   = document.getElementById('f_card').value;
+  const loc    = document.getElementById('f_loc').value;
+
+  // Validation
+  if (!age || !income || !cs) { showError('Please fill in all required fields.'); return; }
+
+  const payload = {
+    Age: age,
+    Income: income,
+    Credit_Score: cs,
+    Credit_Utilization: util,
+    Missed_Payments: missed,
+    Loan_Balance: loan,
+    Debt_to_Income_Ratio: dti,
+    Account_Tenure: tenure,
+    Employment_Status: emp,
+    Credit_Card_Type: card,
+    Location: loc,
+    Month_1: ['On-time','Late','Missed'][monthVals[0]],
+    Month_2: ['On-time','Late','Missed'][monthVals[1]],
+    Month_3: ['On-time','Late','Missed'][monthVals[2]],
+    Month_4: ['On-time','Late','Missed'][monthVals[3]],
+    Month_5: ['On-time','Late','Missed'][monthVals[4]],
+    Month_6: ['On-time','Late','Missed'][monthVals[5]],
+  };
+
+  // Show loading
+  const overlay = document.getElementById('loadingOverlay');
+  overlay.style.display = 'flex';
+  document.getElementById('btnAnalyse').disabled = true;
+
+  try {
+    const res = await fetch('http://127.0.0.1:5001/predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) throw new Error(`Server responded ${res.status}`);
+    const data = await res.json();
+
+    if (data.error) throw new Error(data.error);
+
+    displayResults(data, payload);
+    showToast('Analysis complete ✓');
+
+  } catch (err) {
+    showError('Cannot reach backend at http://127.0.0.1:5001 — make sure app.py is running.');
+    console.error(err);
+  } finally {
+    overlay.style.display = 'none';
+    document.getElementById('btnAnalyse').disabled = false;
+  }
+}
+
+// ── DISPLAY RESULTS ───────────────────────────
+function displayResults(data, payload) {
+  const { risk_score, risk_level, risk_percent } = data;
+  const pct = risk_percent || Math.round(risk_score * 100);
+
+  // Color map
+  const colors = {
+    'High Risk':   '#ff4757',
+    'Medium Risk': '#ffa502',
+    'Low Risk':    '#2ed573'
+  };
+  const glows = {
+    'High Risk':   'rgba(255,71,87,0.1)',
+    'Medium Risk': 'rgba(255,165,2,0.1)',
+    'Low Risk':    'rgba(46,213,115,0.1)'
+  };
+  const color = colors[risk_level] || '#00e5ff';
+
+  // Show section
+  document.getElementById('resultIdle').style.display = 'none';
+  const meter = document.getElementById('riskMeter');
+  meter.style.display = 'flex';
+
+  // Animate score
+  const numEl = document.getElementById('riskNum');
+  numEl.innerHTML = `${pct}<span class="risk-pct">%</span>`;
+  numEl.style.color = color;
+  numEl.style.textShadow = `0 0 30px ${color}`;
+
+  const display = document.getElementById('riskDisplay');
+  display.style.setProperty('--risk-color', color);
+  display.style.setProperty('--glow-color', glows[risk_level]);
+  display.style.borderColor = color + '33';
+
+  document.getElementById('riskLabelBig').textContent = risk_level;
+  document.getElementById('riskLabelBig').style.color = color;
+
+  const verdicts = {
+    'High Risk':   'Immediate review recommended',
+    'Medium Risk': 'Monitor closely — elevated indicators',
+    'Low Risk':    'Profile within acceptable range'
+  };
+  document.getElementById('riskVerdict').textContent = verdicts[risk_level];
+
+  // Gauge
+  setTimeout(() => {
+    document.getElementById('gaugeFill').style.width = pct + '%';
+  }, 100);
+
+  // Stats grid
+  const stats = [
+    { label: 'Credit Score', val: payload.Credit_Score },
+    { label: 'DTI Ratio',    val: (payload.Debt_to_Income_Ratio * 100).toFixed(0) + '%' },
+    { label: 'Utilization',  val: (payload.Credit_Utilization * 100).toFixed(0) + '%' },
+    { label: 'Missed Pmts',  val: payload.Missed_Payments },
+  ];
+  document.getElementById('statGrid').innerHTML = stats.map(s =>
+    `<div class="stat-card">
+      <div class="stat-label">${s.label}</div>
+      <div class="stat-value">${s.val}</div>
+    </div>`
+  ).join('');
+
+  // Factors
+  const factors = buildFactors(payload);
+  document.getElementById('factorsWrap').innerHTML = factors.map(f =>
+    `<div class="factor-row">
+      <span class="factor-icon">${f.icon}</span>
+      <span class="factor-name">${f.name}</span>
+      <span class="factor-badge ${f.cls}">${f.badge}</span>
+    </div>`
+  ).join('');
+
+  // Recommendation
+  document.getElementById('recommendationBox').innerHTML = buildRecommendation(risk_level, payload);
+
+  // Animate in
+  meter.querySelectorAll('.stat-card, .factor-row, .recommendation').forEach((el, i) => {
+    el.style.opacity = 0;
+    setTimeout(() => {
+      el.style.transition = 'opacity 0.3s ease';
+      el.style.opacity = 1;
+    }, 200 + i * 60);
+  });
+}
+
+function buildFactors(p) {
+  const fs = [];
+
+  // Credit score
+  const cs = p.Credit_Score;
+  fs.push({
+    icon: '📊', name: 'Credit Score',
+    cls: cs >= 700 ? 'badge-ok' : cs >= 580 ? 'badge-warn' : 'badge-bad',
+    badge: cs >= 700 ? 'GOOD' : cs >= 580 ? 'FAIR' : 'POOR'
+  });
+
+  // Utilization
+  const util = p.Credit_Utilization * 100;
+  fs.push({
+    icon: '💳', name: 'Credit Utilization',
+    cls: util <= 30 ? 'badge-ok' : util <= 60 ? 'badge-warn' : 'badge-bad',
+    badge: util <= 30 ? 'HEALTHY' : util <= 60 ? 'MODERATE' : 'HIGH'
+  });
+
+  // DTI
+  const dti = p.Debt_to_Income_Ratio;
+  fs.push({
+    icon: '⚖️', name: 'Debt-to-Income',
+    cls: dti <= 0.28 ? 'badge-ok' : dti <= 0.43 ? 'badge-warn' : 'badge-bad',
+    badge: dti <= 0.28 ? 'GOOD' : dti <= 0.43 ? 'ELEVATED' : 'HIGH'
+  });
+
+  // Missed payments
+  const mp = p.Missed_Payments;
+  fs.push({
+    icon: '📆', name: 'Missed Payments',
+    cls: mp === 0 ? 'badge-ok' : mp <= 2 ? 'badge-warn' : 'badge-bad',
+    badge: mp === 0 ? 'NONE' : mp <= 2 ? `${mp} LATE` : `${mp} MISSED`
+  });
+
+  // Payment pattern
+  const lateMissed = monthVals.filter(v => v > 0).length;
+  fs.push({
+    icon: '📈', name: 'Recent Payment Pattern',
+    cls: lateMissed === 0 ? 'badge-ok' : lateMissed <= 2 ? 'badge-warn' : 'badge-bad',
+    badge: lateMissed === 0 ? 'CONSISTENT' : lateMissed <= 2 ? 'IRREGULAR' : 'POOR'
+  });
+
+  return fs;
+}
+
+function buildRecommendation(level, p) {
+  if (level === 'High Risk') {
+    return `<strong>⛔ Do not approve.</strong> This customer profile shows multiple elevated risk signals. 
+    Consider requesting additional collateral or a co-signer before proceeding. 
+    Recommend a full credit review and verification of income documents.`;
+  } else if (level === 'Medium Risk') {
+    return `<strong>⚠️ Conditional approval.</strong> Moderate risk indicators present. 
+    Consider a lower credit limit, higher interest rate tier, or a 3-month probationary period. 
+    Monitor payment behaviour closely over the next 90 days.`;
+  } else {
+    return `<strong>✅ Approve.</strong> This customer presents a low-risk profile. 
+    Standard terms and conditions apply. 
+    Consider offering loyalty incentives or credit limit increases as account tenure grows.`;
+  }
+}
+</script>
+</body>
+</html>
